@@ -1,10 +1,7 @@
-import javax.xml.crypto.Data;
-import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.sql.*;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
 public class Login {
@@ -12,30 +9,33 @@ public class Login {
     FileIO io = new FileIO();
     TextUI ui = new TextUI();
     Streamingservice s1;
-    Scanner scanner = new Scanner(System.in);
+    Scanner input = new Scanner(System.in);
     ArrayList<User> users = new ArrayList<>();
     DatabaseIO d1 = new DatabaseIO();
     public ArrayList<String> watchedMovies = new ArrayList<>();
-    public  ArrayList<String> watchedseries = new ArrayList<>();
+    public ArrayList<String> watchedseries = new ArrayList<>();
 
     public ArrayList<String> savedmovies = new ArrayList<>();
-    public  ArrayList<String> savedseries = new ArrayList<>();
+    public ArrayList<String> savedseries = new ArrayList<>();
 
-    private static final String userfile = "C:\\Users\\chris\\IdeaProjects\\Task-1\\SP3+\\Users.txt";
-    private static final String seriesfile = "C:\\Users\\chris\\IdeaProjects\\Task-1\\SP3+\\100bedsteserier.txt";
-    private static final String moviefile = "C:\\Users\\chris\\IdeaProjects\\Task-1\\SP3+\\100bedstefilm.txt";
+    private static final String userfile = "C:\\Users\\danie\\Desktop\\SP3PLUS_BCD\\src\\Users";
+    private static final String seriesfile = "C:\\Users\\danie\\Desktop\\SP3PLUS_BCD\\src\\100bedsteserier";
+    private static final String moviefile = "C:\\Users\\danie\\Desktop\\SP3PLUS_BCD\\src\\100bedstefilm";
 
-    public static void main(String[] args) {
-        Login login = new Login();
-        login.startmenu();
-    }
+    static String DB_URL;
 
-    public void startmenu() {
+    //  Database credentials
+    static String USER;
+    static String PASS;
+
+
+
+    public void startMenu() {
         System.out.println("Welcome to betflmix");
         System.out.println("1) Create an account");
         System.out.println("2) login");
         try {
-            int choice = Integer.parseInt(scanner.nextLine());
+            int choice = Integer.parseInt(input.nextLine());
             switch (choice) {
                 case 1:
                     createAccount();
@@ -45,20 +45,21 @@ public class Login {
                     break;
                 default:
                     System.out.println("Invalid choice please try again");
-                    startmenu();
+                    startMenu();
             }
         } catch (NumberFormatException e) {
             System.out.println("Invalid input. Please type a number");
-            startmenu();
+            startMenu();
         }
     }
+
     public boolean login() {
         String username = getUserInput("Enter your username: ");
         String password = getUserInput("Enter your password: ");
         //checking if the account is valid
         if (isValidAccount(username, password)) {
             System.out.println("login successful!");
-            s1= new Streamingservice(this);
+            s1 = new Streamingservice(this);
             s1.displayStartMenu(); //displaying start menu if the login was successful
 
             return true;
@@ -72,14 +73,14 @@ public class Login {
 
     public void searchByGenre(ArrayList<Media> mediaList, boolean isMovie) {
         System.out.println("Enter the name of the genre you're looking for: ");
-        String search = scanner.nextLine().trim();
+        String input = this.input.nextLine().trim();
         boolean mediaFound = false; //creating a mediafound boolean that chooses the path of the genre
 
         for (Media media : mediaList)//For each loop that cycles through all media objects
         {
             for (String category : media.getCategory())// For each loop that cycles through all media category's
             {
-                if (category.toLowerCase().contains(search.toLowerCase())) //Checking if the user's output is the same as a media object's category
+                if (category.toLowerCase().contains(input.toLowerCase())) //Checking if the user's output is the same as a media object's category
                 {
                     System.out.println(media);
                     mediaFound = true;
@@ -95,14 +96,14 @@ public class Login {
         }
 
         System.out.println("Enter the title of the " + (isMovie ? "movie" : "series") + " you want to see"); //Using the Ternary operator to check whether the media object is a movie or series. If it's a movie then it prints out movie, its it's a series it prints out series.
-        String chosenMedia = scanner.nextLine().trim();
+        String chosenMedia = this.input.nextLine().trim();
         boolean chosenMediaFound = false;
 
         for (Media media : mediaList) {
             if (chosenMedia.equalsIgnoreCase(media.getTitle())) // Checking if the users output, equals a media objects title
             {
                 System.out.println("Do you want to 1) watch the " + (isMovie ? "movie" : "series") + " or 2) save the " + (isMovie ? "movie" : "series")); //Using the Ternary for the same reason as i did before
-                int choice = Integer.parseInt(scanner.nextLine());
+                int choice = Integer.parseInt(this.input.nextLine());
                 switch (choice) { //Switch cases that lets the user chose to either save the media or watch the media
                     case 1:
                         if (isMovie) {
@@ -127,9 +128,11 @@ public class Login {
         }
     }
 
+
+
     public void searchByName() {
         System.out.println("Enter the name of the movie or series you're looking for: ");
-        String search = scanner.nextLine().trim();
+        String search = input.nextLine().trim();
         boolean mediaFound = false;
 
         ArrayList<Media> allMedia = new ArrayList<>();
@@ -143,7 +146,7 @@ public class Login {
 
                 System.out.println("Do you want to 1) watch or 2) save");
 
-                int choice = Integer.parseInt(scanner.nextLine());
+                int choice = Integer.parseInt(input.nextLine());
                 switch (choice) { //Switch cases that lets the user chose to either save the media or watch the media
                     case 1:
                         if (media instanceof Movie) {
@@ -178,9 +181,10 @@ public class Login {
             createAccount();  //recursion that lets the user try again if his/hers attempt to create an account failed
         } else {
             saveAccount(username, password); //Saving account if login worked
+            //d1.user.add(username, password); //Adding the user to a list of users
+            //users.addAll(d1.writeData()); // Adding all movies to my ArrayList allMedia
             System.out.println("Account created successfully.");
-            users.add(new User(username, password)); //Adding the user to a list of users
-            startmenu(); //displaying start menu
+            startMenu(); //displaying start menu
         }
     }
 
@@ -190,36 +194,85 @@ public class Login {
         return scanner.nextLine();
     }
 
-    private static boolean isValidAccount(String username, String password) {
-        try (Scanner scanner = new Scanner(new FileReader(userfile))) { //scanning the Users.txt file
-            while (scanner.hasNextLine()) {
-                if (scanner.nextLine().equals(username + " ; " + password)) { //returning true if the username and password is in the Users file
-                    return true;
-                }
-            }
-        } catch (IOException e) {
-            System.out.println("invalid account"); //catching the exception if the document doesn't contain the username and password the user wrote to login with.
-        }
-        return false;
-    }
-
     private static void saveAccount(String username, String password) {
-        try (FileWriter writer = new FileWriter(userfile, true)) { //adding my filewriter with the users.txt file. If append is true it turns on append mode. The filewriter will write the data at the end of the file. If the file doesn't exist it will create a new file with the name given in the ()
-            writer.write(username + " ; " + password + "\n");
-        } catch (IOException e) {
+        DatabaseIO dat = new DatabaseIO();
+        try {
+            dat.writeData(username, password);
+            //(FileWriter writer = new FileWriter(userfile, true)) { //adding my filewriter with the users.txt file. If append is true it turns on append mode. The filewriter will write the data at the end of the file. If the file doesn't exist it will create a new file with the name given in the ()
+            // writer.write(username + " ; " + password + "\n");
+        } catch (Exception e) {
             System.out.println("couldn't save account");
+            Login log = new Login();
+            log.startMenu();
+
         }
     }
 
+    private static boolean isValidAccount(String username, String password) {
+        // Database connection parameters
+        DB_URL  = "jdbc:mysql://localhost/world";
+        USER  = "root";
+        PASS =  "2ke&Qa+H_YM*Pa,";
 
-    void displayChoice(){
-        System.out.println("Do you 1) Want to shut down the program or 2) return to startpage");
-        int menuChoice = Integer.parseInt(scanner.nextLine());
-        switch (menuChoice){ //switch case that either shuts down the program or lets the user return to the start page
-            case 1:
-                break;
-            case 2:
-                s1.displayStartMenu();
+        Connection conn = null;
+        PreparedStatement stmt = null;
+
+        try {
+            // Register JDBC driver
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            // Open a connection
+            System.out.println("Connecting to database...");
+            conn = DriverManager.getConnection(DB_URL, USER, PASS);
+
+            // Execute a query
+            System.out.println("Creating statement...");
+            String sql = "SELECT username, password FROM user WHERE username = ? AND password = ?";
+            stmt = conn.prepareStatement(sql);
+
+            stmt.setString(1, username);
+            stmt.setString(2, password);
+
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                // Account exists in the database
+                System.out.println("Account exists.");
+                return true;
+            } else {
+                // Account does not exist in the database
+                System.out.println("Invalid account.");
+                return false;
+            }
+        } catch (SQLException | ClassNotFoundException e) {
+            // Handle errors
+            e.printStackTrace();
+            return false;
+        } finally {
+            // Close resources in the finally block
+            try {
+                if (stmt != null)
+                    stmt.close();
+            } catch (SQLException se) {
+                se.printStackTrace();
+            }
+            try {
+                if (conn != null)
+                    conn.close();
+            } catch (SQLException se) {
+                se.printStackTrace();
+            }
         }
     }
+        void displayChoice () {
+            System.out.println("Do you 1) Want to shut down the program or 2) return to startpage");
+            int menuChoice = Integer.parseInt(input.nextLine());
+            switch (menuChoice) { //switch case that either shuts down the program or lets the user return to the start page
+                case 1:
+                    break;
+                case 2:
+                    s1.displayStartMenu();
+            }
+        }
+
 }
