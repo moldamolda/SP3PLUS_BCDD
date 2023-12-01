@@ -4,6 +4,7 @@ public class Streamingservice {
     Login log;
 
     Scanner scanner = new Scanner(System.in);
+    DatabaseIO d1 = new DatabaseIO();
     TextUI io = new TextUI();
 
     public Streamingservice(Login log) {
@@ -29,10 +30,10 @@ public class Streamingservice {
                 int mediachoise = Integer.parseInt(scanner.nextLine());
                 switch (mediachoise) {
                     case 1:
-                        log.searchByGenre(io.readMediaData("C:\\Users\\chris\\IdeaProjects\\SP3-newnew\\100bedstefilm.txt", true), true);
+                        log.searchByGenre(d1.readData(true),true);
                         break;
                     case 2:
-                        log.searchByGenre(io.readMediaData("C:\\Users\\chris\\IdeaProjects\\SP3-newnew\\100bedsteserier.txt", false), false);
+                        log.searchByGenre(d1.readData(false), false);
                         break;
                     default:
                         System.out.println("Invalid choise. Try again");

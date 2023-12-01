@@ -1,3 +1,4 @@
+import javax.xml.crypto.Data;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -13,19 +14,20 @@ public class Login {
     Streamingservice s1;
     Scanner scanner = new Scanner(System.in);
     ArrayList<User> users = new ArrayList<>();
+    DatabaseIO d1 = new DatabaseIO();
     public ArrayList<String> watchedMovies = new ArrayList<>();
     public  ArrayList<String> watchedseries = new ArrayList<>();
 
     public ArrayList<String> savedmovies = new ArrayList<>();
     public  ArrayList<String> savedseries = new ArrayList<>();
 
-    private static final String userfile = "C:\\Users\\danie\\IdeaProjects\\SP3-newnew\\Users.txt";
-    private static final String seriesfile = "C:\\Users\\danie\\IdeaProjects\\SP3-newnew\\100bedsteserier.txt";
-    private static final String moviefile = "C:\\Users\\danie\\IdeaProjects\\SP3-newnew\\100bedstefilm.txt";
+    private static final String userfile = "C:\\Users\\chris\\IdeaProjects\\Task-1\\SP3+\\Users.txt";
+    private static final String seriesfile = "C:\\Users\\chris\\IdeaProjects\\Task-1\\SP3+\\100bedsteserier.txt";
+    private static final String moviefile = "C:\\Users\\chris\\IdeaProjects\\Task-1\\SP3+\\100bedstefilm.txt";
 
     public static void main(String[] args) {
-        Login login = new Login()    ;
-        login.startmenu()   ;
+        Login login = new Login();
+        login.startmenu();
     }
 
     public void startmenu() {
@@ -77,7 +79,7 @@ public class Login {
         {
             for (String category : media.getCategory())// For each loop that cycles through all media category's
             {
-                if (search.equalsIgnoreCase(category.trim())) //Checking if the user's output is the same as a media object's category
+                if (category.toLowerCase().contains(search.toLowerCase())) //Checking if the user's output is the same as a media object's category
                 {
                     System.out.println(media);
                     mediaFound = true;
@@ -131,8 +133,8 @@ public class Login {
         boolean mediaFound = false;
 
         ArrayList<Media> allMedia = new ArrayList<>();
-        allMedia.addAll(io.readMediaData(moviefile, true)); // Adding all movies to my ArrayList allMedia
-        allMedia.addAll(io.readMediaData(seriesfile, false)); //Adding all series to my ArrayList allMedia
+        allMedia.addAll(d1.readData(true)); // Adding all movies to my ArrayList allMedia
+        allMedia.addAll(d1.readData(false)); //Adding all series to my ArrayList allMedia
 
         for (Media media : allMedia) {
             if (search.equalsIgnoreCase(media.getTitle())) { // Checking if the users output, equals a media objects title
