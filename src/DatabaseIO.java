@@ -111,15 +111,17 @@ public class DatabaseIO {
 
             //STEP 3: Execute a query
             System.out.println("Creating statement...");
-            String sql = "insert into user (username,password) values (?,?)";
+            String sql = "insert into streaming.user (username,password) values (?,?)";
             stmt = conn.prepareStatement(sql);
 
             stmt.setString(1, username);
             stmt.setString(2, password);
 
+
+
             // resultat vi får af SQL'e :
 
-           stmt.executeQuery(sql);
+           stmt.executeUpdate();
 
 
             //STEP 4: Extract data from result set

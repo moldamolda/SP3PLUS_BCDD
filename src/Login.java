@@ -12,6 +12,7 @@ public class Login {
     Scanner input = new Scanner(System.in);
     ArrayList<User> users = new ArrayList<>();
     DatabaseIO d1 = new DatabaseIO();
+
     public ArrayList<String> watchedMovies = new ArrayList<>();
     public ArrayList<String> watchedseries = new ArrayList<>();
 
@@ -177,8 +178,8 @@ public class Login {
         String password = getUserInput("Enter a password: ");
 
         if (isValidAccount(username, password)) { //checking if the Data file already have matching username + passwords
-            System.out.println("You already have a valid account. Try again");
-            createAccount();  //recursion that lets the user try again if his/hers attempt to create an account failed
+            System.out.println("you already have an account, please login");
+            login();  //recursion that lets the user try again if his/hers attempt to create an account failed
         } else {
             saveAccount(username, password); //Saving account if login worked
             //d1.user.add(username, password); //Adding the user to a list of users
@@ -194,21 +195,21 @@ public class Login {
         return scanner.nextLine();
     }
 
-    private static void saveAccount(String username, String password) {
-        DatabaseIO dat = new DatabaseIO();
+    private void saveAccount(String username, String password) {
+
         try {
-            dat.writeData(username, password);
+            d1.writeData(username, password);
             //(FileWriter writer = new FileWriter(userfile, true)) { //adding my filewriter with the users.txt file. If append is true it turns on append mode. The filewriter will write the data at the end of the file. If the file doesn't exist it will create a new file with the name given in the ()
             // writer.write(username + " ; " + password + "\n");
         } catch (Exception e) {
             System.out.println("couldn't save account");
-            Login log = new Login();
-            log.startMenu();
+
+            startMenu();
 
         }
     }
 
-    private static boolean isValidAccount(String username, String password) {
+    private boolean isValidAccount(String username, String password) {
         // Database connection parameters
         DB_URL  = "jdbc:mysql://localhost/world";
         USER  = "root";
@@ -222,12 +223,11 @@ public class Login {
             Class.forName("com.mysql.cj.jdbc.Driver");
 
             // Open a connection
-            System.out.println("Connecting to database...");
+            System.out.println("Connecting to database to check if login is matching...");
             conn = DriverManager.getConnection(DB_URL, USER, PASS);
 
             // Execute a query
-            System.out.println("Creating statement...");
-            String sql = "SELECT username, password FROM user WHERE username = ? AND password = ?";
+            String sql = "SELECT username, password FROM streaming.user WHERE username = ? AND password = ?";
             stmt = conn.prepareStatement(sql);
 
             stmt.setString(1, username);
@@ -237,11 +237,9 @@ public class Login {
 
             if (rs.next()) {
                 // Account exists in the database
-                System.out.println("Account exists.");
                 return true;
             } else {
                 // Account does not exist in the database
-                System.out.println("Invalid account.");
                 return false;
             }
         } catch (SQLException | ClassNotFoundException e) {

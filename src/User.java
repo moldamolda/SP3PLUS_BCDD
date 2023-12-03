@@ -9,7 +9,6 @@ public class User {
     private String passWord;
 
 
-    Login log = new Login();
 
     public User(String userName, String passWord){
         this.userName = userName;
